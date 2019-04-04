@@ -1,0 +1,711 @@
+<!DOCTYPE qgis PUBLIC 'http://mrcc.com/qgis.dtd' 'SYSTEM'>
+<qgis projectname="" version="2.18.16">
+  <title></title>
+  <autotransaction active="0"/>
+  <evaluateDefaultValues active="0"/>
+  <layer-tree-group expanded="1" checked="Qt::Checked" name="">
+    <customproperties/>
+    <layer-tree-layer expanded="1" providerKey="postgres" checked="Qt::Checked" id="pop20190403113703594" source="dbname='dwh_ehbhdi' host=213.108.232.78 port=5432 user='lecteur_srv_bzh' sslmode=disable key='code_com' table=&quot;(/*&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#x9;&#xd;&#xa;----------------------------------------------------------------------------------&#xd;&#xa;-- Requête Population légale &#x9;&#x9;&#x9;&#x9;&#x9;--&#xd;&#xa;----------------------------------------------------------------------------------&#xd;&#xa;*/&#xd;&#xa;&#xd;&#xa;&#xd;&#xa;WITH donnees_pop AS&#xd;&#xa;&#x9;(&#xd;&#xa;&#x9;WITH table_correspondance_geo AS -- correspondance entre le code commune historique et le code commune actuel&#xd;&#xa;&#x9;&#x9;(&#xd;&#xa;&#x9;&#x9;WITH table_passage AS&#xd;&#xa;&#x9;&#x9;&#x9;(&#xd;&#xa;&#x9;&#x9;&#x9;SELECT&#xd;&#xa;&#x9;&#x9;&#x9;  id_commune AS id_commune_hist,&#xd;&#xa;&#x9;&#x9;&#x9;  code_com AS code_com_hist,&#x9;  &#xd;&#xa;&#x9;&#x9;&#x9;CASE&#xd;&#xa;&#x9;&#x9;&#x9;  WHEN id_commune_pole IS NULL THEN id_commune -- &#xd;&#xa;&#x9;&#x9;&#x9;  WHEN id_commune_pole IS NOT NULL THEN id_commune_pole -- regroupement de commune&#xd;&#xa;&#x9;&#x9;&#x9;END AS id_commune&#xd;&#xa;&#x9;&#x9;&#x9;FROM&#xd;&#xa;&#x9;&#x9;&#x9;  dimensions.communes&#xd;&#xa;&#x9;&#x9;&#x9;)&#xd;&#xa;&#xd;&#xa;&#x9;&#x9;SELECT&#xd;&#xa;&#x9;&#x9;  table_passage.id_commune_hist,&#xd;&#xa;&#x9;&#x9;  table_passage.code_com_hist, -- code commune historique&#xd;&#xa;&#x9;&#x9;  dimensions.communes.code_com AS code_com -- code commune actuel&#xd;&#xa;&#x9;&#x9;FROM&#xd;&#xa;&#x9;&#x9;  dimensions.communes,&#xd;&#xa;&#x9;&#x9;  table_passage&#xd;&#xa;&#x9;&#x9;WHERE&#xd;&#xa;&#x9;&#x9;  communes.id_commune = table_passage.id_commune&#xd;&#xa;&#x9;&#x9;) &#xd;&#xa;&#xd;&#xa;&#x9;,millesime AS -- selection du dernier millésime Insee&#xd;&#xa;&#x9;&#x9;(&#xd;&#xa;&#x9;&#x9;WITH temp2 AS&#xd;&#xa;&#x9;&#x9;&#x9;(&#xd;&#xa;&#x9;&#x9;&#x9;WITH temp AS&#xd;&#xa;&#x9;&#x9;&#x9;&#x9;(&#xd;&#xa;&#x9;&#x9;&#x9;&#x9;select &#xd;&#xa;&#x9;&#x9;&#x9;&#x9;numero_annee as numero_annee&#xd;&#xa;&#x9;&#x9;&#x9;&#x9;from \&quot;dimensions\&quot;.\&quot;annees\&quot; &#xd;&#xa;&#x9;&#x9;&#x9;&#x9;where \&quot;dimensions\&quot;.\&quot;annees\&quot;.\&quot;est_une_borne\&quot; = 'Oui'&#xd;&#xa;&#x9;&#x9;&#x9;&#x9;)&#xd;&#xa;&#x9;&#x9;&#x9;select&#xd;&#xa;&#x9;&#x9;&#x9;numero_annee as numero_annee,&#xd;&#xa;&#x9;&#x9;&#x9;row_number() over (order by numero_annee desc) as rn&#xd;&#xa;&#x9;&#x9;&#x9;from temp&#xd;&#xa;&#x9;&#x9;&#x9;)&#xd;&#xa;&#x9;&#x9;select &#xd;&#xa;&#x9;&#x9;numero_annee&#xd;&#xa;&#x9;&#x9;from temp2&#xd;&#xa;&#x9;&#x9;where rn=1&#xd;&#xa;&#x9;&#x9;order by numero_annee&#xd;&#xa;&#x9;&#x9;)&#xd;&#xa;&#x9; &#xd;&#xa;&#xd;&#xa;&#x9;SELECT &#xd;&#xa;&#x9;  table_correspondance_geo.code_com AS code_com,&#xd;&#xa;&#x9;  max(annees.numero_annee) AS annee,&#xd;&#xa;&#x9;  sum(populations.population) AS population&#xd;&#xa;&#x9;FROM &#xd;&#xa;&#x9;  dimensions.annees, &#xd;&#xa;&#x9;  dimensions.communes, &#xd;&#xa;&#x9;  faits.populations,&#xd;&#xa;&#x9;  table_correspondance_geo&#xd;&#xa;&#x9;WHERE &#xd;&#xa;&#x9;  annees.id_annee = populations.id_annee&#xd;&#xa;&#x9;AND&#xd;&#xa;&#x9;  populations.id_commune = communes.id_commune&#xd;&#xa;&#x9;AND&#xd;&#xa;&#x9;  communes.id_commune = table_correspondance_geo.id_commune_hist&#xd;&#xa;&#x9;AND&#xd;&#xa;&#x9;  communes.code_reg = '53'&#xd;&#xa;&#x9;AND&#xd;&#xa;&#x9;  annees.numero_annee =(select numero_annee from millesime)&#xd;&#xa;&#x9;GROUP BY&#xd;&#xa;&#x9;  table_correspondance_geo.code_com&#xd;&#xa;&#x9;)&#xd;&#xa;SELECT &#xd;&#xa; communes_pt.code_com,&#xd;&#xa; communes_pt.lib_com,&#xd;&#xa; donnees_pop.annee,&#xd;&#xa; donnees_pop.population,&#xd;&#xa; communes_pt.the_geom&#xd;&#xa;FROM&#xd;&#xa; geographies.communes_pt,&#xd;&#xa; donnees_pop&#xd;&#xa;WHERE&#xd;&#xa; communes_pt.code_com =  donnees_pop.code_com&#xd;&#xa;AND&#xd;&#xa;  communes_pt.code_reg='53'&#xd;&#xa;  &#xa;)&quot; (the_geom) sql=" name="pop">
+      <customproperties/>
+    </layer-tree-layer>
+    <layer-tree-group expanded="1" checked="Qt::Checked" name="group1">
+      <customproperties/>
+    </layer-tree-group>
+  </layer-tree-group>
+  <relations/>
+  <mapcanvas>
+    <units>meters</units>
+    <extent>
+      <xmin>194809.85958372009918094</xmin>
+      <ymin>6739537.47288413252681494</ymin>
+      <xmax>272153.40002642630133778</xmax>
+      <ymax>6784475.76094454992562532</ymax>
+    </extent>
+    <rotation>0</rotation>
+    <projections>0</projections>
+    <destinationsrs>
+      <spatialrefsys>
+        <proj4>+proj=lcc +lat_1=49 +lat_2=44 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs</proj4>
+        <srsid>145</srsid>
+        <srid>2154</srid>
+        <authid>EPSG:2154</authid>
+        <description>RGF93 / Lambert-93</description>
+        <projectionacronym>lcc</projectionacronym>
+        <ellipsoidacronym>GRS80</ellipsoidacronym>
+        <geographicflag>false</geographicflag>
+      </spatialrefsys>
+    </destinationsrs>
+    <rendermaptile>0</rendermaptile>
+    <layer_coordinate_transform_info/>
+  </mapcanvas>
+  <layer-tree-canvas>
+    <custom-order enabled="0">
+      <item>pop20190403113703594</item>
+    </custom-order>
+  </layer-tree-canvas>
+  <legend updateDrawingOrder="true">
+    <legendlayer drawingOrder="-1" open="true" checked="Qt::Checked" name="pop" showFeatureCount="0">
+      <filegroup open="true" hidden="false">
+        <legendlayerfile isInOverview="0" layerid="pop20190403113703594" visible="1"/>
+      </filegroup>
+    </legendlayer>
+    <legendgroup open="true" checked="Qt::Checked" name="group1"/>
+  </legend>
+  <mapcanvas>
+    <units>degrees</units>
+    <extent>
+      <xmin>0</xmin>
+      <ymin>0</ymin>
+      <xmax>0</xmax>
+      <ymax>0</ymax>
+    </extent>
+    <rotation>0</rotation>
+    <projections>0</projections>
+    <destinationsrs>
+      <spatialrefsys>
+        <proj4>+proj=longlat +datum=WGS84 +no_defs</proj4>
+        <srsid>3452</srsid>
+        <srid>4326</srid>
+        <authid>EPSG:4326</authid>
+        <description>WGS 84</description>
+        <projectionacronym>longlat</projectionacronym>
+        <ellipsoidacronym>WGS84</ellipsoidacronym>
+        <geographicflag>true</geographicflag>
+      </spatialrefsys>
+    </destinationsrs>
+    <rendermaptile>0</rendermaptile>
+    <layer_coordinate_transform_info/>
+  </mapcanvas>
+  <projectlayers>
+    <maplayer simplifyAlgorithm="0" minimumScale="0" maximumScale="1e+08" simplifyDrawingHints="0" minLabelScale="0" maxLabelScale="1e+08" simplifyDrawingTol="1" readOnly="0" geometry="Point" simplifyMaxScale="1" type="vector" hasScaleBasedVisibilityFlag="0" simplifyLocal="1" scaleBasedLabelVisibilityFlag="0">
+      <extent>
+        <xmin>103253.4092547519976506</xmin>
+        <ymin>6706904.35735350009053946</ymin>
+        <xmax>397895.46808410901576281</xmax>
+        <ymax>6878097.83567889966070652</ymax>
+      </extent>
+      <id>pop20190403113703594</id>
+      <datasource>dbname='dwh_ehbhdi' host=213.108.232.78 port=5432 user='lecteur_srv_bzh' password='datagences' sslmode=disable key='code_com' table="(/*																										&#xd;
+----------------------------------------------------------------------------------&#xd;
+-- Requête Population légale 					--&#xd;
+----------------------------------------------------------------------------------&#xd;
+*/&#xd;
+&#xd;
+&#xd;
+WITH donnees_pop AS&#xd;
+	(&#xd;
+	WITH table_correspondance_geo AS -- correspondance entre le code commune historique et le code commune actuel&#xd;
+		(&#xd;
+		WITH table_passage AS&#xd;
+			(&#xd;
+			SELECT&#xd;
+			  id_commune AS id_commune_hist,&#xd;
+			  code_com AS code_com_hist,	  &#xd;
+			CASE&#xd;
+			  WHEN id_commune_pole IS NULL THEN id_commune -- &#xd;
+			  WHEN id_commune_pole IS NOT NULL THEN id_commune_pole -- regroupement de commune&#xd;
+			END AS id_commune&#xd;
+			FROM&#xd;
+			  dimensions.communes&#xd;
+			)&#xd;
+&#xd;
+		SELECT&#xd;
+		  table_passage.id_commune_hist,&#xd;
+		  table_passage.code_com_hist, -- code commune historique&#xd;
+		  dimensions.communes.code_com AS code_com -- code commune actuel&#xd;
+		FROM&#xd;
+		  dimensions.communes,&#xd;
+		  table_passage&#xd;
+		WHERE&#xd;
+		  communes.id_commune = table_passage.id_commune&#xd;
+		) &#xd;
+&#xd;
+	,millesime AS -- selection du dernier millésime Insee&#xd;
+		(&#xd;
+		WITH temp2 AS&#xd;
+			(&#xd;
+			WITH temp AS&#xd;
+				(&#xd;
+				select &#xd;
+				numero_annee as numero_annee&#xd;
+				from \"dimensions\".\"annees\" &#xd;
+				where \"dimensions\".\"annees\".\"est_une_borne\" = 'Oui'&#xd;
+				)&#xd;
+			select&#xd;
+			numero_annee as numero_annee,&#xd;
+			row_number() over (order by numero_annee desc) as rn&#xd;
+			from temp&#xd;
+			)&#xd;
+		select &#xd;
+		numero_annee&#xd;
+		from temp2&#xd;
+		where rn=1&#xd;
+		order by numero_annee&#xd;
+		)&#xd;
+	 &#xd;
+&#xd;
+	SELECT &#xd;
+	  table_correspondance_geo.code_com AS code_com,&#xd;
+	  max(annees.numero_annee) AS annee,&#xd;
+	  sum(populations.population) AS population&#xd;
+	FROM &#xd;
+	  dimensions.annees, &#xd;
+	  dimensions.communes, &#xd;
+	  faits.populations,&#xd;
+	  table_correspondance_geo&#xd;
+	WHERE &#xd;
+	  annees.id_annee = populations.id_annee&#xd;
+	AND&#xd;
+	  populations.id_commune = communes.id_commune&#xd;
+	AND&#xd;
+	  communes.id_commune = table_correspondance_geo.id_commune_hist&#xd;
+	AND&#xd;
+	  communes.code_reg = '53'&#xd;
+	AND&#xd;
+	  annees.numero_annee =(select numero_annee from millesime)&#xd;
+	GROUP BY&#xd;
+	  table_correspondance_geo.code_com&#xd;
+	)&#xd;
+SELECT &#xd;
+ communes_pt.code_com,&#xd;
+ communes_pt.lib_com,&#xd;
+ donnees_pop.annee,&#xd;
+ donnees_pop.population,&#xd;
+ communes_pt.the_geom&#xd;
+FROM&#xd;
+ geographies.communes_pt,&#xd;
+ donnees_pop&#xd;
+WHERE&#xd;
+ communes_pt.code_com =  donnees_pop.code_com&#xd;
+AND&#xd;
+  communes_pt.code_reg='53'&#xd;
+  
+)" (the_geom) sql=</datasource>
+      <keywordList>
+        <value></value>
+      </keywordList>
+      <layername>pop</layername>
+      <srs>
+        <spatialrefsys>
+          <proj4>+proj=lcc +lat_1=49 +lat_2=44 +lat_0=46.5 +lon_0=3 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs</proj4>
+          <srsid>145</srsid>
+          <srid>2154</srid>
+          <authid>EPSG:2154</authid>
+          <description>RGF93 / Lambert-93</description>
+          <projectionacronym>lcc</projectionacronym>
+          <ellipsoidacronym>GRS80</ellipsoidacronym>
+          <geographicflag>false</geographicflag>
+        </spatialrefsys>
+      </srs>
+      <provider encoding="System">postgres</provider>
+      <vectorjoins/>
+      <layerDependencies/>
+      <expressionfields/>
+      <map-layer-style-manager current="">
+        <map-layer-style name=""/>
+      </map-layer-style-manager>
+      <edittypes>
+        <edittype widgetv2type="TextEdit" name="code_com">
+          <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+        </edittype>
+        <edittype widgetv2type="TextEdit" name="lib_com">
+          <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+        </edittype>
+        <edittype widgetv2type="TextEdit" name="annee">
+          <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+        </edittype>
+        <edittype widgetv2type="TextEdit" name="population">
+          <widgetv2config IsMultiline="0" fieldEditable="1" constraint="" UseHtml="0" labelOnTop="0" constraintDescription="" notNull="0"/>
+        </edittype>
+      </edittypes>
+      <renderer-v2 forceraster="0" symbollevels="0" type="singleSymbol" enableorderby="0">
+        <symbols>
+          <symbol alpha="1" clip_to_extent="1" type="marker" name="0">
+            <layer pass="0" class="SimpleMarker" locked="0">
+              <prop k="angle" v="0"/>
+              <prop k="color" v="69,117,180,255"/>
+              <prop k="horizontal_anchor_point" v="1"/>
+              <prop k="joinstyle" v="bevel"/>
+              <prop k="name" v="circle"/>
+              <prop k="offset" v="0,0"/>
+              <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+              <prop k="offset_unit" v="MM"/>
+              <prop k="outline_color" v="0,0,0,255"/>
+              <prop k="outline_style" v="solid"/>
+              <prop k="outline_width" v="0"/>
+              <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
+              <prop k="outline_width_unit" v="MM"/>
+              <prop k="scale_method" v="diameter"/>
+              <prop k="size" v="2"/>
+              <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
+              <prop k="size_unit" v="MM"/>
+              <prop k="vertical_anchor_point" v="1"/>
+            </layer>
+          </symbol>
+        </symbols>
+        <rotation/>
+        <sizescale scalemethod="diameter"/>
+      </renderer-v2>
+      <labeling type="simple"/>
+      <customproperties>
+        <property key="embeddedWidgets/count" value="0"/>
+        <property key="labeling" value="pal"/>
+        <property key="labeling/addDirectionSymbol" value="false"/>
+        <property key="labeling/angleOffset" value="0"/>
+        <property key="labeling/blendMode" value="0"/>
+        <property key="labeling/bufferBlendMode" value="0"/>
+        <property key="labeling/bufferColorA" value="255"/>
+        <property key="labeling/bufferColorB" value="255"/>
+        <property key="labeling/bufferColorG" value="255"/>
+        <property key="labeling/bufferColorR" value="255"/>
+        <property key="labeling/bufferDraw" value="false"/>
+        <property key="labeling/bufferJoinStyle" value="128"/>
+        <property key="labeling/bufferNoFill" value="false"/>
+        <property key="labeling/bufferSize" value="1"/>
+        <property key="labeling/bufferSizeInMapUnits" value="false"/>
+        <property key="labeling/bufferSizeMapUnitScale" value="0,0,0,0,0,0"/>
+        <property key="labeling/bufferTransp" value="0"/>
+        <property key="labeling/centroidInside" value="false"/>
+        <property key="labeling/centroidWhole" value="false"/>
+        <property key="labeling/decimals" value="3"/>
+        <property key="labeling/displayAll" value="false"/>
+        <property key="labeling/dist" value="0"/>
+        <property key="labeling/distInMapUnits" value="false"/>
+        <property key="labeling/distMapUnitScale" value="0,0,0,0,0,0"/>
+        <property key="labeling/drawLabels" value="false"/>
+        <property key="labeling/enabled" value="false"/>
+        <property key="labeling/fieldName" value=""/>
+        <property key="labeling/fitInPolygonOnly" value="false"/>
+        <property key="labeling/fontCapitals" value="0"/>
+        <property key="labeling/fontFamily" value="MS Shell Dlg 2"/>
+        <property key="labeling/fontItalic" value="false"/>
+        <property key="labeling/fontLetterSpacing" value="0"/>
+        <property key="labeling/fontLimitPixelSize" value="false"/>
+        <property key="labeling/fontMaxPixelSize" value="10000"/>
+        <property key="labeling/fontMinPixelSize" value="3"/>
+        <property key="labeling/fontSize" value="8.25"/>
+        <property key="labeling/fontSizeInMapUnits" value="false"/>
+        <property key="labeling/fontSizeMapUnitScale" value="0,0,0,0,0,0"/>
+        <property key="labeling/fontStrikeout" value="false"/>
+        <property key="labeling/fontUnderline" value="false"/>
+        <property key="labeling/fontWeight" value="50"/>
+        <property key="labeling/fontWordSpacing" value="0"/>
+        <property key="labeling/formatNumbers" value="false"/>
+        <property key="labeling/isExpression" value="true"/>
+        <property key="labeling/labelOffsetInMapUnits" value="true"/>
+        <property key="labeling/labelOffsetMapUnitScale" value="0,0,0,0,0,0"/>
+        <property key="labeling/labelPerPart" value="false"/>
+        <property key="labeling/leftDirectionSymbol" value="&lt;"/>
+        <property key="labeling/limitNumLabels" value="false"/>
+        <property key="labeling/maxCurvedCharAngleIn" value="25"/>
+        <property key="labeling/maxCurvedCharAngleOut" value="-25"/>
+        <property key="labeling/maxNumLabels" value="2000"/>
+        <property key="labeling/mergeLines" value="false"/>
+        <property key="labeling/minFeatureSize" value="0"/>
+        <property key="labeling/multilineAlign" value="3"/>
+        <property key="labeling/multilineHeight" value="1"/>
+        <property key="labeling/namedStyle" value="Normal"/>
+        <property key="labeling/obstacle" value="true"/>
+        <property key="labeling/obstacleFactor" value="1"/>
+        <property key="labeling/obstacleType" value="0"/>
+        <property key="labeling/offsetType" value="0"/>
+        <property key="labeling/placeDirectionSymbol" value="0"/>
+        <property key="labeling/placement" value="6"/>
+        <property key="labeling/placementFlags" value="10"/>
+        <property key="labeling/plussign" value="false"/>
+        <property key="labeling/predefinedPositionOrder" value="TR,TL,BR,BL,R,L,TSR,BSR"/>
+        <property key="labeling/preserveRotation" value="true"/>
+        <property key="labeling/previewBkgrdColor" value="#ffffff"/>
+        <property key="labeling/priority" value="5"/>
+        <property key="labeling/quadOffset" value="4"/>
+        <property key="labeling/repeatDistance" value="0"/>
+        <property key="labeling/repeatDistanceMapUnitScale" value="0,0,0,0,0,0"/>
+        <property key="labeling/repeatDistanceUnit" value="1"/>
+        <property key="labeling/reverseDirectionSymbol" value="false"/>
+        <property key="labeling/rightDirectionSymbol" value=">"/>
+        <property key="labeling/scaleMax" value="10000000"/>
+        <property key="labeling/scaleMin" value="1"/>
+        <property key="labeling/scaleVisibility" value="false"/>
+        <property key="labeling/shadowBlendMode" value="6"/>
+        <property key="labeling/shadowColorB" value="0"/>
+        <property key="labeling/shadowColorG" value="0"/>
+        <property key="labeling/shadowColorR" value="0"/>
+        <property key="labeling/shadowDraw" value="false"/>
+        <property key="labeling/shadowOffsetAngle" value="135"/>
+        <property key="labeling/shadowOffsetDist" value="1"/>
+        <property key="labeling/shadowOffsetGlobal" value="true"/>
+        <property key="labeling/shadowOffsetMapUnitScale" value="0,0,0,0,0,0"/>
+        <property key="labeling/shadowOffsetUnits" value="1"/>
+        <property key="labeling/shadowRadius" value="1.5"/>
+        <property key="labeling/shadowRadiusAlphaOnly" value="false"/>
+        <property key="labeling/shadowRadiusMapUnitScale" value="0,0,0,0,0,0"/>
+        <property key="labeling/shadowRadiusUnits" value="1"/>
+        <property key="labeling/shadowScale" value="100"/>
+        <property key="labeling/shadowTransparency" value="30"/>
+        <property key="labeling/shadowUnder" value="0"/>
+        <property key="labeling/shapeBlendMode" value="0"/>
+        <property key="labeling/shapeBorderColorA" value="255"/>
+        <property key="labeling/shapeBorderColorB" value="128"/>
+        <property key="labeling/shapeBorderColorG" value="128"/>
+        <property key="labeling/shapeBorderColorR" value="128"/>
+        <property key="labeling/shapeBorderWidth" value="0"/>
+        <property key="labeling/shapeBorderWidthMapUnitScale" value="0,0,0,0,0,0"/>
+        <property key="labeling/shapeBorderWidthUnits" value="1"/>
+        <property key="labeling/shapeDraw" value="false"/>
+        <property key="labeling/shapeFillColorA" value="255"/>
+        <property key="labeling/shapeFillColorB" value="255"/>
+        <property key="labeling/shapeFillColorG" value="255"/>
+        <property key="labeling/shapeFillColorR" value="255"/>
+        <property key="labeling/shapeJoinStyle" value="64"/>
+        <property key="labeling/shapeOffsetMapUnitScale" value="0,0,0,0,0,0"/>
+        <property key="labeling/shapeOffsetUnits" value="1"/>
+        <property key="labeling/shapeOffsetX" value="0"/>
+        <property key="labeling/shapeOffsetY" value="0"/>
+        <property key="labeling/shapeRadiiMapUnitScale" value="0,0,0,0,0,0"/>
+        <property key="labeling/shapeRadiiUnits" value="1"/>
+        <property key="labeling/shapeRadiiX" value="0"/>
+        <property key="labeling/shapeRadiiY" value="0"/>
+        <property key="labeling/shapeRotation" value="0"/>
+        <property key="labeling/shapeRotationType" value="0"/>
+        <property key="labeling/shapeSVGFile" value=""/>
+        <property key="labeling/shapeSizeMapUnitScale" value="0,0,0,0,0,0"/>
+        <property key="labeling/shapeSizeType" value="0"/>
+        <property key="labeling/shapeSizeUnits" value="1"/>
+        <property key="labeling/shapeSizeX" value="0"/>
+        <property key="labeling/shapeSizeY" value="0"/>
+        <property key="labeling/shapeTransparency" value="0"/>
+        <property key="labeling/shapeType" value="0"/>
+        <property key="labeling/substitutions" value="&lt;substitutions/>"/>
+        <property key="labeling/textColorA" value="255"/>
+        <property key="labeling/textColorB" value="0"/>
+        <property key="labeling/textColorG" value="0"/>
+        <property key="labeling/textColorR" value="0"/>
+        <property key="labeling/textTransp" value="0"/>
+        <property key="labeling/upsidedownLabels" value="0"/>
+        <property key="labeling/useSubstitutions" value="false"/>
+        <property key="labeling/wrapChar" value=""/>
+        <property key="labeling/xOffset" value="0"/>
+        <property key="labeling/yOffset" value="0"/>
+        <property key="labeling/zIndex" value="0"/>
+        <property key="variableNames"/>
+        <property key="variableValues"/>
+      </customproperties>
+      <blendMode>0</blendMode>
+      <featureBlendMode>0</featureBlendMode>
+      <layerTransparency>0</layerTransparency>
+      <displayfield>La population de la commune de &lt;b> [%"lib_com"%] &lt;/b> est de &lt;b> [%"population"%] habitants</displayfield>
+      <label>0</label>
+      <labelattributes>
+        <label fieldname="" text="Étiquette"/>
+        <family fieldname="" name="MS Shell Dlg 2"/>
+        <size fieldname="" units="pt" value="12"/>
+        <bold fieldname="" on="0"/>
+        <italic fieldname="" on="0"/>
+        <underline fieldname="" on="0"/>
+        <strikeout fieldname="" on="0"/>
+        <color fieldname="" red="0" blue="0" green="0"/>
+        <x fieldname=""/>
+        <y fieldname=""/>
+        <offset x="0" y="0" units="pt" yfieldname="" xfieldname=""/>
+        <angle fieldname="" value="0" auto="0"/>
+        <alignment fieldname="" value="center"/>
+        <buffercolor fieldname="" red="255" blue="255" green="255"/>
+        <buffersize fieldname="" units="pt" value="1"/>
+        <bufferenabled fieldname="" on=""/>
+        <multilineenabled fieldname="" on=""/>
+        <selectedonly on=""/>
+      </labelattributes>
+      <SingleCategoryDiagramRenderer diagramType="Histogram" sizeLegend="0" attributeLegend="1">
+        <DiagramCategory penColor="#000000" labelPlacementMethod="XHeight" penWidth="0" diagramOrientation="Up" sizeScale="0,0,0,0,0,0" minimumSize="0" barWidth="5" penAlpha="255" maxScaleDenominator="1e+08" backgroundColor="#ffffff" transparency="0" width="15" scaleDependency="Area" backgroundAlpha="255" angleOffset="1440" scaleBasedVisibility="0" enabled="0" height="15" lineSizeScale="0,0,0,0,0,0" sizeType="MM" lineSizeType="MM" minScaleDenominator="inf">
+          <fontProperties description="MS Shell Dlg 2,8.25,-1,5,50,0,0,0,0,0" style=""/>
+        </DiagramCategory>
+        <symbol alpha="1" clip_to_extent="1" type="marker" name="sizeSymbol">
+          <layer pass="0" class="SimpleMarker" locked="0">
+            <prop k="angle" v="0"/>
+            <prop k="color" v="255,0,0,255"/>
+            <prop k="horizontal_anchor_point" v="1"/>
+            <prop k="joinstyle" v="bevel"/>
+            <prop k="name" v="circle"/>
+            <prop k="offset" v="0,0"/>
+            <prop k="offset_map_unit_scale" v="0,0,0,0,0,0"/>
+            <prop k="offset_unit" v="MM"/>
+            <prop k="outline_color" v="0,0,0,255"/>
+            <prop k="outline_style" v="solid"/>
+            <prop k="outline_width" v="0"/>
+            <prop k="outline_width_map_unit_scale" v="0,0,0,0,0,0"/>
+            <prop k="outline_width_unit" v="MM"/>
+            <prop k="scale_method" v="diameter"/>
+            <prop k="size" v="2"/>
+            <prop k="size_map_unit_scale" v="0,0,0,0,0,0"/>
+            <prop k="size_unit" v="MM"/>
+            <prop k="vertical_anchor_point" v="1"/>
+          </layer>
+        </symbol>
+      </SingleCategoryDiagramRenderer>
+      <DiagramLayerSettings yPosColumn="-1" showColumn="-1" linePlacementFlags="10" placement="0" dist="0" xPosColumn="-1" priority="0" obstacle="0" zIndex="0" showAll="1"/>
+      <annotationform></annotationform>
+      <aliases>
+        <alias field="code_com" index="0" name=""/>
+        <alias field="lib_com" index="1" name=""/>
+        <alias field="annee" index="2" name=""/>
+        <alias field="population" index="3" name=""/>
+      </aliases>
+      <excludeAttributesWMS/>
+      <excludeAttributesWFS/>
+      <attributeactions default="-1"/>
+      <attributetableconfig actionWidgetStyle="dropDown" sortExpression="" sortOrder="65540">
+        <columns>
+          <column width="-1" hidden="0" type="field" name="code_com"/>
+          <column width="-1" hidden="0" type="field" name="lib_com"/>
+          <column width="-1" hidden="0" type="field" name="annee"/>
+          <column width="-1" hidden="0" type="field" name="population"/>
+          <column width="-1" hidden="1" type="actions"/>
+        </columns>
+      </attributetableconfig>
+      <editform></editform>
+      <editforminit/>
+      <editforminitcodesource>0</editforminitcodesource>
+      <editforminitfilepath></editforminitfilepath>
+      <editforminitcode><![CDATA[# -*- coding: utf-8 -*-
+"""
+Les formulaires QGIS peuvent avoir une fonction Python qui sera appelée à l'ouverture du formulaire.
+
+Utilisez cette fonction pour ajouter plus de fonctionnalités à vos formulaires.
+
+Entrez le nom de la fonction dans le champ "Fonction d'initialisation Python".
+Voici un exemple à suivre:
+"""
+from qgis.PyQt.QtWidgets import QWidget
+
+def my_form_open(dialog, layer, feature):
+    geom = feature.geometry()
+    control = dialog.findChild(QWidget, "MyLineEdit")
+
+]]></editforminitcode>
+      <featformsuppress>0</featformsuppress>
+      <editorlayout>generatedlayout</editorlayout>
+      <widgets/>
+      <conditionalstyles>
+        <rowstyles/>
+        <fieldstyles/>
+      </conditionalstyles>
+      <defaults>
+        <default field="code_com" expression=""/>
+        <default field="lib_com" expression=""/>
+        <default field="annee" expression=""/>
+        <default field="population" expression=""/>
+      </defaults>
+      <previewExpression></previewExpression>
+    </maplayer>
+  </projectlayers>
+  <properties>
+    <WMSUrl type="QString"></WMSUrl>
+    <SpatialRefSys>
+      <ProjectCRSProj4String type="QString">+proj=longlat +datum=WGS84 +no_defs</ProjectCRSProj4String>
+      <ProjectCrs type="QString">EPSG:4326</ProjectCrs>
+      <ProjectCRSID type="int">3452</ProjectCRSID>
+    </SpatialRefSys>
+    <Measurement>
+      <DistanceUnits type="QString">meters</DistanceUnits>
+      <AreaUnits type="QString">m2</AreaUnits>
+    </Measurement>
+    <WMSExtent type="QStringList">
+      <value>194809.85958372009918094</value>
+      <value>6729581.3881384339183569</value>
+      <value>272153.40002642630133778</value>
+      <value>6794431.84569024853408337</value>
+    </WMSExtent>
+    <Legend>
+      <filterByMap type="bool">false</filterByMap>
+    </Legend>
+    <DefaultStyles>
+      <Fill type="QString"></Fill>
+      <Line type="QString"></Line>
+      <Marker type="QString"></Marker>
+      <RandomColors type="bool">true</RandomColors>
+      <AlphaInt type="int">255</AlphaInt>
+      <ColorRamp type="QString"></ColorRamp>
+    </DefaultStyles>
+    <WMSAccessConstraints type="QString">None</WMSAccessConstraints>
+    <WMSInspire>
+      <language type="QString">fre</language>
+      <activated type="bool">true</activated>
+    </WMSInspire>
+    <WMSSegmentizeFeatureInfoGeometry type="bool">false</WMSSegmentizeFeatureInfoGeometry>
+    <WMSContactMail type="QString"></WMSContactMail>
+    <WMSImageQuality type="int">90</WMSImageQuality>
+    <WFSLayersPrecision>
+      <pop20190403113703594 type="int">8</pop20190403113703594>
+    </WFSLayersPrecision>
+    <WMSRestrictedComposers type="QStringList"/>
+    <WMSServiceTitle type="QString"></WMSServiceTitle>
+    <WMSContactPhone type="QString"></WMSContactPhone>
+    <DBManager>
+      <savedQueries>
+        <q-494792933>
+          <query type="QString">/*																										&#xd;
+----------------------------------------------------------------------------------&#xd;
+-- Requête Population légale 					--&#xd;
+----------------------------------------------------------------------------------&#xd;
+*/&#xd;
+&#xd;
+&#xd;
+WITH donnees_pop AS&#xd;
+	(&#xd;
+	WITH table_correspondance_geo AS -- correspondance entre le code commune historique et le code commune actuel&#xd;
+		(&#xd;
+		WITH table_passage AS&#xd;
+			(&#xd;
+			SELECT&#xd;
+			  id_commune AS id_commune_hist,&#xd;
+			  code_com AS code_com_hist,	  &#xd;
+			CASE&#xd;
+			  WHEN id_commune_pole IS NULL THEN id_commune -- &#xd;
+			  WHEN id_commune_pole IS NOT NULL THEN id_commune_pole -- regroupement de commune&#xd;
+			END AS id_commune&#xd;
+			FROM&#xd;
+			  dimensions.communes&#xd;
+			)&#xd;
+&#xd;
+		SELECT&#xd;
+		  table_passage.id_commune_hist,&#xd;
+		  table_passage.code_com_hist, -- code commune historique&#xd;
+		  dimensions.communes.code_com AS code_com -- code commune actuel&#xd;
+		FROM&#xd;
+		  dimensions.communes,&#xd;
+		  table_passage&#xd;
+		WHERE&#xd;
+		  communes.id_commune = table_passage.id_commune&#xd;
+		) &#xd;
+&#xd;
+	,millesime AS -- selection du dernier millésime Insee&#xd;
+		(&#xd;
+		WITH temp2 AS&#xd;
+			(&#xd;
+			WITH temp AS&#xd;
+				(&#xd;
+				select &#xd;
+				numero_annee as numero_annee&#xd;
+				from "dimensions"."annees" &#xd;
+				where "dimensions"."annees"."est_une_borne" = 'Oui'&#xd;
+				)&#xd;
+			select&#xd;
+			numero_annee as numero_annee,&#xd;
+			row_number() over (order by numero_annee desc) as rn&#xd;
+			from temp&#xd;
+			)&#xd;
+		select &#xd;
+		numero_annee&#xd;
+		from temp2&#xd;
+		where rn=1&#xd;
+		order by numero_annee&#xd;
+		)&#xd;
+	 &#xd;
+&#xd;
+	SELECT &#xd;
+	  table_correspondance_geo.code_com AS code_com,&#xd;
+	  max(annees.numero_annee) AS annee,&#xd;
+	  sum(populations.population) AS population&#xd;
+	FROM &#xd;
+	  dimensions.annees, &#xd;
+	  dimensions.communes, &#xd;
+	  faits.populations,&#xd;
+	  table_correspondance_geo&#xd;
+	WHERE &#xd;
+	  annees.id_annee = populations.id_annee&#xd;
+	AND&#xd;
+	  populations.id_commune = communes.id_commune&#xd;
+	AND&#xd;
+	  communes.id_commune = table_correspondance_geo.id_commune_hist&#xd;
+	AND&#xd;
+	  communes.code_reg = '53'&#xd;
+	AND&#xd;
+	  annees.numero_annee =(select numero_annee from millesime)&#xd;
+	GROUP BY&#xd;
+	  table_correspondance_geo.code_com&#xd;
+	)&#xd;
+SELECT &#xd;
+ communes_pt.code_com,&#xd;
+ communes_pt.lib_com,&#xd;
+ donnees_pop.annee,&#xd;
+ donnees_pop.population,&#xd;
+ communes_pt.the_geom&#xd;
+FROM&#xd;
+ geographies.communes_pt,&#xd;
+ donnees_pop&#xd;
+WHERE&#xd;
+ communes_pt.code_com =  donnees_pop.code_com&#xd;
+AND&#xd;
+  communes_pt.code_reg='53'&#xd;
+  ;</query>
+          <name type="QString">sql_pop</name>
+        </q-494792933>
+      </savedQueries>
+    </DBManager>
+    <WFSTLayers>
+      <Insert type="QStringList"/>
+      <Update type="QStringList"/>
+      <Delete type="QStringList"/>
+    </WFSTLayers>
+    <WCSLayers type="QStringList"/>
+    <WMSRestrictedLayers type="QStringList"/>
+    <WMSFees type="QString">conditions unknown</WMSFees>
+    <Macros>
+      <pythonCode type="QString"></pythonCode>
+    </Macros>
+    <WMSAddWktGeometry type="bool">false</WMSAddWktGeometry>
+    <WCSUrl type="QString"></WCSUrl>
+    <WMSOnlineResource type="QString"></WMSOnlineResource>
+    <WMSPrecision type="QString">8</WMSPrecision>
+    <WMSCrsList type="QStringList">
+      <value>EPSG:2154</value>
+    </WMSCrsList>
+    <Digitizing>
+      <DefaultSnapToleranceUnit type="int">2</DefaultSnapToleranceUnit>
+      <SnappingMode type="QString">current_layer</SnappingMode>
+      <DefaultSnapType type="QString">off</DefaultSnapType>
+      <DefaultSnapTolerance type="double">0</DefaultSnapTolerance>
+    </Digitizing>
+    <Identify>
+      <disabledLayers type="QStringList"/>
+    </Identify>
+    <WMSContactPerson type="QString"></WMSContactPerson>
+    <WMSContactOrganization type="QString"></WMSContactOrganization>
+    <WMSKeywordList type="QStringList">
+      <value></value>
+    </WMSKeywordList>
+    <Paths>
+      <Absolute type="bool">false</Absolute>
+    </Paths>
+    <WMSContactPosition type="QString"></WMSContactPosition>
+    <Variables>
+      <variableNames type="QStringList"/>
+      <variableValues type="QStringList"/>
+    </Variables>
+    <PositionPrecision>
+      <DecimalPlaces type="int">2</DecimalPlaces>
+      <Automatic type="bool">true</Automatic>
+      <DegreeFormat type="QString">MU</DegreeFormat>
+    </PositionPrecision>
+    <Gui>
+      <SelectionColorBluePart type="int">0</SelectionColorBluePart>
+      <CanvasColorGreenPart type="int">255</CanvasColorGreenPart>
+      <CanvasColorRedPart type="int">255</CanvasColorRedPart>
+      <SelectionColorRedPart type="int">255</SelectionColorRedPart>
+      <SelectionColorAlphaPart type="int">255</SelectionColorAlphaPart>
+      <SelectionColorGreenPart type="int">255</SelectionColorGreenPart>
+      <CanvasColorBluePart type="int">255</CanvasColorBluePart>
+    </Gui>
+    <WFSLayers type="QStringList">
+      <value>pop20190403113703594</value>
+    </WFSLayers>
+    <WMSServiceAbstract type="QString"></WMSServiceAbstract>
+    <Measure>
+      <Ellipsoid type="QString">NONE</Ellipsoid>
+    </Measure>
+    <WFSUrl type="QString"></WFSUrl>
+    <WMSUseLayerIDs type="bool">false</WMSUseLayerIDs>
+    <WMSServiceCapabilities type="bool">true</WMSServiceCapabilities>
+  </properties>
+  <visibility-presets/>
+</qgis>
