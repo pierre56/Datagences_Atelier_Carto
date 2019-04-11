@@ -1,12 +1,12 @@
-
+﻿
 /*																										
 ----------------------------------------------------------------------------------
--- Requête Population légale 					--
+-- Requête emploi salarié privé				--
 ----------------------------------------------------------------------------------
 */
 
 
-WITH donnees_pop AS
+WITH donnees_eff_sal AS
 	(
 	WITH table_correspondance_geo AS -- correspondance entre le code commune historique et le code commune actuel
 		(
@@ -61,16 +61,16 @@ WITH donnees_pop AS
 	SELECT 
 	  table_correspondance_geo.code_com AS code_com,
 	  max(annees.numero_annee) AS annee,
-	  sum(populations.population) AS population
+	  sum(etab_eff_sal_na732_acoss.effectif) AS effectif_total
 	FROM 
 	  dimensions.annees, 
 	  dimensions.communes, 
-	  faits.populations,
+	  faits.etab_eff_sal_na732_acoss,
 	  table_correspondance_geo
 	WHERE 
-	  annees.id_annee = populations.id_annee
+	  annees.id_annee = etab_eff_sal_na732_acoss.id_annee
 	AND
-	  populations.id_commune = communes.id_commune
+	  etab_eff_sal_na732_acoss.id_commune = communes.id_commune
 	AND
 	  communes.id_commune = table_correspondance_geo.id_commune_hist
 	AND
@@ -83,16 +83,14 @@ WITH donnees_pop AS
 SELECT 
  communes_pt.code_com,
  communes_pt.lib_com,
- donnees_pop.annee,
- donnees_pop.population,
+ donnees_eff_sal.annee,
+ donnees_eff_sal.effectif_total,
  communes_pt.the_geom
 FROM
  geographies.communes_pt,
- donnees_pop
+ donnees_eff_sal
 WHERE
- communes_pt.code_com =  donnees_pop.code_com
+ communes_pt.code_com =  donnees_eff_sal.code_com
 AND
   communes_pt.code_reg='53'
   ;
-
-  
